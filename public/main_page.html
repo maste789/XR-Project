@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HMD</title>
+    <link rel="stylesheet" href="../stylesheets/style.css" />
+    <link href="
+    https://cdn.jsdelivr.net/npm/literallycanvas@0.5.2/lib/css/literallycanvas.min.css
+    " rel="stylesheet">
+    <script>
+    (function patchExtmapCollision() {
+      var _offerExtmaps = new WeakMap();
+
+      var _origSetLocal = RTCPeerConnection.prototype.setLocalDescription;
+      RTCPeerConnection.prototype.setLocalDescription = function (desc) {
+        if (desc && desc.type === 'offer' && desc.sdp) {
+          var map = {};
+          desc.sdp.replace(/\r\na=extmap:(\d+)(?:\/[^\s]+)?\s+([^\s\r\n]+)/g, function (_, id, uri) {
+            map[uri] = id;
+          });
+          _offerExtmaps.set(this, map);
+        }
+        return _origSetLocal.apply(this, arguments);
+      };
+
+      var _origSetRemote = RTCPeerConnection.prototype.setRemoteDescription;
+      RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
+        if (desc && desc.type === 'answer' && desc.sdp) {
+          var map = _offerExtmaps.get(this);
+          if (map) {
+            var sdp = desc.sdp.replace(
+              /(\r\na=extmap:)(\d+)((?:\/[^\s]+)?\s+)([^\s\r\n]+)/g,
+              function (match, prefix, id, dir, uri) {
+                return map[uri] !== undefined
+                  ? prefix + map[uri] + dir + uri
+                  : match;
+              }
+            );
+            desc = new RTCSessionDescription({ type: 'answer', sdp: sdp });
+          }
+        }
+        return _origSetRemote.apply(this, arguments);
+      };
+    })();
+  </script>
+  <script src="js/mediasoup-client.js"></script>
+    <script src="socket.io/socket.io.js"></script>
+  </head>
+  <body class="mainbody">
+    <div class="top_manu">
+        <div class="logobox">
+          <img src="../images/logo.svg" />  
+        </div>
+        <div class="def_icons">
+            <img src="../images/more_icon/home.svg" alt="">
+        </div>
+        <div class="def_icons">
+            <img src="../images/more_icon/folder.svg" alt="">
+        </div>
+        <div class="def_icons">
+            <img src="../images/more_icon/lock.svg" alt="">
+        </div>
+        
+        
+        <div class="def_icons">
+            <img src="../images/more_icon/site.svg" alt="">
+        </div>
+         <div class="def_icons">
+            <img src="../images/more_icon/bookmark.svg" alt="">
+        </div>
+        <div class="def_icons">
+            <img src="../images/more_icon/more_user.svg" alt="">
+        </div>
+         <div class="def_icons">
+            <img src="../images/more_icon/alarm.svg" alt="">
+        </div>
+        <div class="def_icons">
+            <img src="../images/more_icon/setting.svg" alt="">
+        </div>
+    </div>
+    <div class="main_div">
+      <div class="chat_box">
+        <div class="chatobjbox">
+          <div class="chat_obj">
+            <div class="mychat">한줄</div>
+            <div class="timetext">16:29</div>
+          </div>
+          <div class="chat_obj">
+            <div class="mychat">한줄<br>두줄</div>
+            <div class="timetext">16:29</div>
+          </div>
+          <div class="chat_obj">
+            <div class="mychat">한줄<br>두줄<br>세줄</div>
+            <div class="timetext">16:29</div>
+          </div>
+        </div>
+        <div class="chat_inputbox">
+          <input type="text" name="" id="chat_massge" placeholder="메시지를 입력해주세요...">
+          <div class="sendbtn" onclick="send_chat()">
+            <div>SEND</div>
+            <img src="../images/Send.svg" alt="">
+          </div>
+        </div>
+      </div>
+      <div class="content maincontent display_flex">
+        <div class="videobox">
+          <video class="view_video main_video" autoplay controls></video>
+          <div class="canvasbox"></div>
+          <div class="hid_publishbtn" style="" onclick="startMedia()">
+            <video class="send_video" autoplay controls></video>
+          </div>
+        </div>
+        <div class="bottom_btnbox">
+          <div class="btn_box">
+            <div class="left_btnbox">
+              <div class="sound_btn" onclick="muted_setting(this)"> 
+                <img src="../images/active_voice.svg" alt="" srcset="">
+              </div>
+              <div class="mic_btn" onclick="micmuted_setting(this)"> 
+                <img src="../images/acrive_mic.svg" alt="" srcset="">
+              </div>
+            </div>
+            <div class="mid_btnbox">
+              <div class="sound_btn edit_btn" onclick="edit_control(this)"> 
+                <img src="../images/active_edit.svg" alt="" srcset="">
+              </div>
+              <div class="mic_btn" onclick="point_draw(this)"> 
+                <img src="../images/disable_point.svg" alt="" srcset="">
+              </div>
+              <div class="sound_btn" onclick="arrow_draw(this)"> 
+                <img src="../images/arrow.svg" alt="" srcset="">
+              </div>
+            </div>
+    
+            <div class="rigth_btnbox">
+              <div class="sound_btn" onclick="video_control(this)"> 
+                <img src="../images/started_video.svg" alt="" srcset="">
+              </div>
+            </div>
+          </div>   
+          <div class="controlbox">
+            <div class="clearbtn" onclick="clear_canvas()">
+              <img src="../images/clear.svg" alt="" srcset="">
+            </div>
+            <div class="returnbtn" onclick="return_drowing()">
+              <img src="../images/returnbtn.svg" alt="" srcset="">
+            </div>
+            <div class="blackbtn" onclick="select_color('black' , this)">
+              <img class="select_icon viewselect_icon" src="../images/select_icon.svg" alt="" srcset="">
+            </div>
+            <div class="whitebtn" onclick="select_color('white' , this)">
+              <img class="select_icon" src="../images/select_iconblack.svg" alt="" srcset="">
+            </div>
+            <div class="orangebtn" onclick="select_color('orange' , this)">
+              <img class="select_icon" src="../images/select_icon.svg" alt="" srcset="">
+            </div>
+            <div class="redbtn" onclick="select_color('red' , this)">
+              <img class="select_icon" src="../images/select_icon.svg" alt="" srcset="">
+            </div>
+            <div class="bluebtn" onclick="select_color('blue' , this)">
+              <img class="select_icon" src="../images/select_icon.svg" alt="" srcset="">
+            </div>
+            <div class="greenbtn" onclick="select_color('green' , this)">
+              <img class="select_icon" src="../images/select_icon.svg" alt="" srcset="">
+            </div>
+          </div>  
+        </div>
+      </div>
+       <div class="left_manu">
+        <div class="select_box">
+         
+          <div class="videobtn" style="border: none;">
+            <img src="../images/more_icon/good.svg" alt="">
+          </div>  
+          <div class="videobtn" style="border: none;">
+            <img src="../images/more_icon/video.svg" alt="">
+          </div>  
+           <div class="videobtn" style="border: none;">
+            <img src="../images/more_icon/link.svg" alt="">
+          </div>  
+          <div class="videobtn" style="border: none;">
+            <img src="../images/more_icon/linked.svg" alt="">
+          </div>  
+          <div class="videobtn" style="border: none;">
+            <img src="../images/more_icon/user.svg" alt="">
+          </div>
+          <div class="videobtn">
+            <img src="../images/chat.svg" alt="">
+          </div>
+          <div class="chat_btn">
+            <img src="../images/videocam.svg" alt="" srcset="">
+          </div>
+        </div>
+        <div class="logoutbtn">
+          <img src="../images/logout.svg" alt="" srcset="">
+        </div>
+      </div>
+    </div>
+    <!-- <div style="width: 100px;height: 100px; display: none;">
+      <video class="send_video" muted autoplay  src=""></video>
+    </div> -->
+
+   
+    <script
+      src="https://code.jquery.com/jquery-3.7.0.min.js"
+      integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-with-addons.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
+    <script src="
+     ../javascripts/_js_libs/literallycanvas.js
+      "></script>
+      <script src="
+      ../javascripts/subscribe.js
+      "></script>
+      <script src="
+      ../javascripts/publish_mainpage.js
+      "></script>
+      <script src="
+      ../javascripts/control_LC.JS
+       "></script>
+    <script>
+      
+
+      $(".logoutbtn").on("click" , function(){
+        location.href = "../index.html";
+      });
+
+
+      
+      setTimeout(() => {
+        arrow_draw();
+      }, 2000);
+
+      function start_publish(){
+        setTimeout(() => {
+          $(".hid_publishbtn").trigger("click");
+        }, 3000);
+      }
+
+      // Auto-subscribe after all scripts loaded (convertStringToNumber is now defined).
+      subscribe().catch((err) => console.error("auto subscribe ERROR:", err));
+    </script>
+
+  </body>
+</html>

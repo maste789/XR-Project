@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HMD</title>
+  <style>
+    @keyframes chat_anim {
+      from {
+        top: -200px;
+      }
+
+      25% {
+        top: 30px;
+      }
+
+      75% {
+        top: 30px;
+      }
+
+      to {
+        top: -200px;
+      }
+    }
+
+    html,
+    body.webview-page {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      background-color: #000000 !important;
+    }
+
+    .webview-page .content {
+      background-color: #000000 !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      max-width: 100%;
+      height: 100vh;
+      min-height: 0;
+      padding: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .webview-page .topchatbox {
+      width: 100%;
+      max-width: 100%;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .webview-page .videobox.webviewvideobox {
+      position: relative;
+      margin: auto;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+
+    .webview-page .videobox.webviewvideobox > .view_video {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .webview-page .canvasbox {
+      max-width: 100%;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+    }
+  </style>
+  <link rel="stylesheet" href="../stylesheets/style.css" />
+  <link href="
+    https://cdn.jsdelivr.net/npm/literallycanvas@0.5.2/lib/css/literallycanvas.min.css
+    " rel="stylesheet">
+  <script>
+    // Patch RTCPeerConnection to fix extmap ID collision on Android WebView.
+    // mediasoup-client builds a synthetic answer SDP whose extmap IDs may differ
+    // from the browser's offer IDs. This interceptor realigns the answer IDs to
+    // match the offer so that setRemoteDescription never sees a reassignment.
+    (function patchExtmapCollision() {
+      var _offerExtmaps = new WeakMap();
+
+      var _origSetLocal = RTCPeerConnection.prototype.setLocalDescription;
+      RTCPeerConnection.prototype.setLocalDescription = function (desc) {
+        if (desc && desc.type === 'offer' && desc.sdp) {
+          var map = {};
+          desc.sdp.replace(/\r\na=extmap:(\d+)(?:\/[^\s]+)?\s+([^\s\r\n]+)/g, function (_, id, uri) {
+            map[uri] = id;
+          });
+          _offerExtmaps.set(this, map);
+        }
+        return _origSetLocal.apply(this, arguments);
+      };
+
+      var _origSetRemote = RTCPeerConnection.prototype.setRemoteDescription;
+      RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
+        if (desc && desc.type === 'answer' && desc.sdp) {
+          var map = _offerExtmaps.get(this);
+          if (map) {
+            var sdp = desc.sdp.replace(
+              /(\r\na=extmap:)(\d+)((?:\/[^\s]+)?\s+)([^\s\r\n]+)/g,
+              function (match, prefix, id, dir, uri) {
+                return map[uri] !== undefined
+                  ? prefix + map[uri] + dir + uri
+                  : match;
+              }
+            );
+            desc = new RTCSessionDescription({ type: 'answer', sdp: sdp });
+          }
+        }
+        return _origSetRemote.apply(this, arguments);
+      };
+    })();
+  </script>
+  <script src="js/mediasoup-client.js"></script>
+  <script src="socket.io/socket.io.js"></script>
+
+</head>
+
+<body class="m_body webview-page" style="position: relative;">
+  <div class="topchatbox">
+    <div class="chat_massage">채팅입니다.</div>
+  </div>
+  <!-- <div class="left_manu">
+      <div class="logobox">
+        <img src="../images/def_logo.svg" />  
+      </div>
+      <div class="select_box">
+        <div class="videobtn">
+          <img src="../images/video.svg" alt="">
+        </div>
+        <div class="chat_btn">
+          <img src="../images/chat.svg" alt="" srcset="">
+        </div>
+      </div>
+      <div class="logoutbtn">
+        <img src="../images/logout.svg" alt="" srcset="">
+      </div>
+    </div> -->
+  <!-- <div style="background-color: #000000;width: 100px; z-index: 10;position: absolute;left: 0;height: 100vh;"></div> -->
+  <!-- <div style="background-color: #000000;width: 100px; z-index: 10;position: absolute;right: 0;height: 100vh;"></div> -->
+  <div class="content">
+    <div class="videobox webviewvideobox">
+      <video class="view_video" muted autoplay controls="true" style="margin:0px"></video>
+      <div class="canvasbox" style="height: 100%;width: 100%;"></div>
+      <div style="width: 100px;height: 100px;" class="sendvideo">
+        <video class="send_video" controls autoplay src=""></video>
+      </div>
+    </div>
+    <!-- display: none; -->
+
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"
+    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-with-addons.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
+  <script>
+    (function bootstrapRoomCode() {
+      const currentCode = sessionStorage.getItem("code");
+      if (currentCode) return;
+
+      const params = new URLSearchParams(window.location.search);
+      let code = params.get("code") || params.get("room");
+
+      // Android WebView bridge fallback.
+      if (!code && window.Android && typeof window.Android.getCode === "function") {
+        try {
+          code = window.Android.getCode();
+        } catch (e) {
+          console.warn("Android.getCode() failed:", e);
+        }
+      }
+
+      if (code) {
+        sessionStorage.setItem("code", code);
+        console.log("webview room code initialized:", code);
+      } else {
+        console.warn("room code is missing. pass ?code=... to webview url");
+      }
+    })();
+  </script>
+  <script src="
+     ../javascripts/_js_libs/literallycanvas.js
+      "></script>
+  <script src="
+      ../javascripts/control_LC.JS
+       "></script>
+  <script src="
+       ../javascripts/publish.js
+        "></script>
+  <script src="../javascripts/subscribe_webview.js">
+  </script>
+  <script>
+
+    function fitWebviewLayout() {
+      const maxW = window.innerWidth;
+      const maxH = Math.min(window.innerHeight, 412);
+      let height = maxH;
+      let width = Math.floor((height / 3) * 4);
+
+      if (width > maxW) {
+        width = maxW;
+        height = Math.floor((width / 4) * 3);
+      }
+
+      $(".videobox").css({
+        margin: "auto",
+        width: width + "px",
+        height: height + "px",
+      });
+
+      if (typeof window.redrawCanvasForCurrentView === "function") {
+        window.redrawCanvasForCurrentView();
+      } else if (typeof lc !== "undefined" && lc && lc.respondToSizeChange) {
+        lc.respondToSizeChange();
+      }
+    }
+
+    fitWebviewLayout();
+    $(window).on("resize", fitWebviewLayout);
+
+    setTimeout(() => {
+      fitWebviewLayout();
+      if (typeof lc !== "undefined" && lc) {
+        lc.on('drawEnd', function () {
+          $(".lc-undo").trigger("click");
+        });
+      }
+    }, 1500);
+
+    // All scripts loaded — now convertStringToNumber is defined.
+    // Kick off camera publish and subscribe explicitly.
+    subscribe().catch((err) => console.error("auto subscribe ERROR:", err));
+
+    // Publish chain: getDevicesId → startMedia → publish (inside startMedia .then).
+    // Call startMedia here as an extra safety net.
+    startMedia();
+
+  </script>
+</body>
+
+</html>

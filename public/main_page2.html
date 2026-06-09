@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HMD</title>
+    <link rel="stylesheet" href="../stylesheets/style.css" />
+    <link href="
+    https://cdn.jsdelivr.net/npm/literallycanvas@0.5.2/lib/css/literallycanvas.min.css
+    " rel="stylesheet">
+    <script src="js/mediasoup-client.js"></script>
+    <script src="socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div class="left_manu">
+      <div class="logobox">
+        <img src="../images/def_logo.svg" />  
+      </div>
+      <div class="select_box">
+        <div class="videobtn">
+          <img src="../images/video.svg" alt="">
+        </div>
+        <div class="chat_btn">
+          <img src="../images/chat.svg" alt="" srcset="">
+        </div>
+      </div>
+      <div class="logoutbtn">
+        <img src="../images/logout.svg" alt="" srcset="">
+      </div>
+    </div>
+    <div class="content display_flex" style="padding: 0px;width: 100%;height: 100vh;">
+      <div class="videobox" style="margin-top: 0px;height: 100%;">
+        <video controls="true" style="height: 100%;margin:0px"></video>
+        <div class="canvasbox" style="height: 100%;width: 100%;"></div>
+      </div>
+      <!-- <div class="btn_box">
+        <div class="left_btnbox">
+          <div class="sound_btn" onclick="zoom()"> 
+            <img src="../images/sound.svg" alt="" srcset="">
+          </div>
+          <div class="mic_btn"> 
+            <img src="../images/voice.svg" alt="" srcset="">
+          </div>
+        </div>
+        <div class="mid_btnbox">
+          <div class="sound_btn"> 
+            <img src="../images/edit.svg" alt="" srcset="">
+          </div>
+          <div class="mic_btn"> 
+            <img src="../images/voice.svg" alt="" srcset="">
+          </div>
+          <div class="sound_btn"> 
+            <img src="../images/arrow.svg" alt="" srcset="">
+          </div>
+        </div>
+
+        <div class="rigth_btnbox">
+          <div class="sound_btn"> 
+            <img src="../images/cancel_video.svg" alt="" srcset="">
+          </div>
+        </div>
+      </div>    -->
+<!--       
+      <div class="controlbox">
+        <div class="clearbtn" onclick="clear_canvas()">
+          <img src="../images/clear.svg" alt="" srcset="">
+        </div>
+        <div class="returnbtn" onclick="return_drowing()">
+          <img src="../images/returnbtn.svg" alt="" srcset="">
+        </div>
+        <div class="blackbtn" onclick="select_color('black')">
+          <img class="select_icon viewselect_icon" src="../images/select_icon.svg" alt="" srcset="">
+        </div>
+        <div class="whitebtn" onclick="select_color('white')">
+          <img class="select_icon" src="../images/select_iconblack.svg" alt="" srcset="">
+        </div>
+        <div class="orangebtn" onclick="select_color('orange')">
+          <img class="select_icon" src="../images/select_icon.svg" alt="" srcset="">
+        </div>
+        <div class="redbtn" onclick="select_color('red')">
+          <img class="select_icon" src="../images/select_icon.svg" alt="" srcset="">
+        </div>
+        <div class="bluebtn" onclick="select_color('blue')">
+          <img class="select_icon" src="../images/select_icon.svg" alt="" srcset="">
+        </div>
+        <div class="greenbtn" onclick="select_color('green')">
+          <img class="select_icon" src="../images/select_icon.svg" alt="" srcset="">
+        </div>
+      </div>  
+      
+    </div>
+    <div class="chat_box">
+      <div class="chatobjbox">
+        <div class="chat_obj">
+          <div class="mychat">한줄</div>
+          <div class="timetext">16:29</div>
+        </div>
+        <div class="chat_obj">
+          <div class="mychat">한줄<br>두줄</div>
+          <div class="timetext">16:29</div>
+        </div>
+        <div class="chat_obj">
+          <div class="mychat">한줄<br>두줄<br>세줄</div>
+          <div class="timetext">16:29</div>
+        </div>
+      </div>
+      <div class="chat_inputbox">
+        <input type="text" name="" id="" placeholder="메시지를 입력해주세요...">
+        <div class="sendbtn">
+          <img src="../images/send.svg" alt="">
+        </div>
+      </div>
+    </div> -->
+
+    <script
+      src="https://code.jquery.com/jquery-3.7.0.min.js"
+      integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-with-addons.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
+    <script src="
+     ../javascripts/_js_libs/literallycanvas.js
+      "></script>
+      <script src="
+      ../javascripts/control_LC.JS
+       "></script>
+      <script >
+      
+     </script>
+  </body>
+</html>

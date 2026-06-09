@@ -1,0 +1,28 @@
+{
+  "name": "metaxr",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "build-client": "node_modules/browserify/bin/cmd.js node_modules/mediasoup-client/lib/index.js -s MediasoupClient -o public/js/mediasoup-client.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "browserify": "^17.0.0",
+    "connect-mongo": "2.0.3",
+    "cookie-parser": "~1.4.4",
+    "cors": "^2.8.5",
+    "debug": "~2.6.9",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "http-errors": "~1.6.3",
+    "mediasoup": "^3.12.13",
+    "mediasoup-client": "3",
+    "mongoose": "^7.6.1",
+    "morgan": "~1.9.1",
+    "passport": "^0.6.0",
+    "pug": "^2.0.4",
+    "socket.io": "^4.7.2"
+  }
+}

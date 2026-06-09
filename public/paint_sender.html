@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Canvas tutorial</title>
+
+    <style type="text/css">
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+      canvas {
+        position: relative;
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <td>
+          <canvas
+            id="canvas1"
+            width="650"
+            height="700"
+            style="border: 1px solid #000000; display: inline-block"
+          >
+          </canvas>
+        </td>
+        <td>
+          <canvas
+            id="canvas2"
+            width="2000"
+            height="3000"
+            style="border: 1px solid #000000; display: inline-block"
+          >
+          </canvas>
+        </td>
+      </tr>
+    </table>
+
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.3.0/fabric.min.js"></script>
+
+    <script type="text/javascript">
+      fabric.Object.NUM_FRACTION_DIGITS = 5;
+
+      var image_url = "";
+
+      var canvas = new fabric.Canvas("canvas1", {
+        isDrawingMode: true,
+      });
+
+      var canvas2 = new fabric.Canvas("canvas2", {
+        isDrawingMode: false,
+      });
+
+      fabric.Image.fromURL(image_url, function (img) {
+        var image = img.set({
+          scaleX: canvas.width / 1190,
+          scaleY: canvas.height / 1684,
+        });
+
+        canvas.add(image).renderAll();
+      });
+
+      // 객체가 추가될 때. 삭제될때 이벤트도 있음.
+      canvas.on("object:added", function (options) {
+        if (options.target) {
+          var obj = options.target;
+
+          // obj.toJSON() 이걸 웹소켓으로 서버로 던져서
+          console.log(obj.toJSON());
+
+          // 받는쪽에서는 JSON을 디코딩 한 다음에 아래처럼 canvas에 add하면 됨.
+
+          // 객체를 선택하지 못하게 하고 (움직이기, 선택, 삭제 금지)
+          obj.selectable = false;
+
+          // 두번째 캔버스에 추가.
+          canvas2.add(new fabric.Rect(obj));
+          canvas2.renderAll();
+        }
+      });
+    </script>
+  </body>
+</html>
